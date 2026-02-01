@@ -13,13 +13,31 @@
         <script src="./assets/js/lib/jquery-ui.min.js"></script>
         <script src="./assets/js/lib/swiper.min.js"></script>
         <script src="./assets/js/lib/aos.js"></script>
-        <script src="./assets/js/include.js"></script>
         <script src="./assets/js/common.js"></script>
         <title>PORTFOLIO</title>
     </head>
     <body>
         <div id="wrap">
-            <div data-include="include/_header.html"></div>
+            <!-- header -->
+            <header id="header">
+                <div class="inner">
+                    <div class="logoWrap">
+                        <h1>
+                            <a href="/index.html"><span>DESIGNER</span><span>KIMDOYEON</span></a>
+                        </h1>
+                    </div>
+                    <div class="navWrap">
+                        <div class="navList">
+                            <ul>
+                                <!-- <li><a href="#" data-target="introSec">About</a></li> -->
+                                <li><a href="#" data-target="projectSec">Portfolio</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <!--// header -->
+
             <div id="container">
                 <!-- <section class="introSec">
                     <h3 class="blind">소개 영역</h3>
@@ -43,7 +61,25 @@
                     </div>
                 </section>
             </div>
-            <div data-include="include/_footer.html"></div>
+            
+            <!-- footer -->
+            <footer id="footer">
+                <div class="inner">
+                    <div class="addrArea">
+                        <div class="address">
+                            <h3>보기 쉽고 사용하기 쉬운 UI를 생각하는 웹디자이너 김도연입니다. <br/>브랜드의 목적과 사용자의 흐름을 고려한 UI 설계를 지향합니다.</h3>
+                        </div>
+                        <div class="contact">
+                            <p>
+                                <span>E-mail : 123456789@aaaaaaaaaaa</span>
+                                <span>Tel : 010-1234-5678</span>
+                            </p>
+                            <p class="copy">© 2026 Kim Doyeon. All rights reserved.</p>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+            <!--// footer -->
         </div>
 
         <!-- Modal -->
@@ -55,3 +91,98 @@
         </div>
     </body>
 </html>
+
+<script>
+    // 프로젝트 영역
+    const tabsEl = document.getElementById('tabs');
+    const projectListEl = document.getElementById('projectList');
+    const modal = document.getElementById('modal');
+    const modalImg = document.getElementById('modalImg');
+    const closeBtn = document.getElementById('close');
+
+    let projectData = null;
+
+    /* ===== JSON 불러오기 ===== */
+    fetch('../../../projects.json')
+        .then(res => {
+        if (!res.ok) throw new Error('JSON load failed');
+        return res.json();
+        })
+        .then(data => {
+        projectData = data;
+        renderTabs('all');
+        renderProjects('all');
+        })
+        .catch(err => console.error(err));
+
+    /* ===== 탭 렌더링 ===== */
+    function renderTabs(activeType) {
+        tabsEl.innerHTML = '';
+        projectData.tabs.forEach(tab => {
+        const btn = document.createElement('button');
+        btn.className = 'tab' + (tab.id === activeType ? ' active' : '');
+        btn.textContent = tab.label;
+        btn.dataset.type = tab.id;
+
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            renderProjects(tab.id);
+        });
+
+        tabsEl.appendChild(btn);
+        });
+    }
+
+    /* ===== 프로젝트 렌더링 ===== */
+    function renderProjects(type) {
+    projectListEl.innerHTML = '';
+
+    projectData.projects
+        .filter(p => type === 'all' || p.type === type)
+        .forEach(project => {
+        const card = document.createElement('div');
+        card.className = 'project';
+
+        card.innerHTML = `
+            <div class="thumb">
+                <img src="${project.image}" alt="${project.title}">
+                <div class="overlay">
+                    <span>VIEW</span>
+                </div>
+            </div>
+            <div class="project-info">
+            <h3>${project.title}</h3>
+            <p>${project.desc}</p>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            modalImg.src = project.image;
+            modal.classList.add('active');
+            bodyLock();
+
+            // 모달 컨텐츠 스크롤 최상단
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) modalContent.scrollTop = 0;
+        });
+
+        projectListEl.appendChild(card);
+        });
+    }
+
+
+    /* ===== 모달 닫기 ===== */
+    closeBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        bodyUnlock();
+    });
+
+    modal.addEventListener('click', e => {
+        if (e.target === modal) {
+            e.stopPropagation();
+            modal.classList.remove('active');
+            bodyUnlock();
+        }
+    });
+</script>
